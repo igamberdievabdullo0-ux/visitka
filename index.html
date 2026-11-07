@@ -18,7 +18,8 @@
 *{box-sizing:border-box}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--text);font-family:"Inter",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.4;-webkit-font-smoothing:antialiased}
-.wrap{max-width:460px;margin:0 auto;padding:16px 16px 40px}
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.wrap{position:relative;z-index:1;max-width:460px;margin:0 auto;padding:16px 16px 40px}
 header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
 .logo{font-weight:800;font-size:20px;letter-spacing:-.02em}
 .lang{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:3px}
@@ -52,14 +53,56 @@ dialog{border:0;border-radius:20px;padding:20px;background:var(--surface);color:
 dialog::backdrop{background:rgba(0,0,0,.5)}
 #qr{width:240px;height:240px;margin:0 auto 12px;display:block;background:#fff;border-radius:12px;padding:8px}
 </style>
+<meta name="theme-color" content="#0a0a0a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Чёрный и золотой */
+:root,:root:not([data-theme="light"]),:root[data-theme="dark"]{
+  --bg:#0a0a0a;--surface:#131210;--text:#f1ebdd;--muted:#948a73;--line:#2b2619;
+  --gold:#c9a24b;--gold-hi:#e6c978;--gold-lo:#9c7a2e;--gold-dim:rgba(201,162,75,.38);
+  --ink:#c9a24b;--ink-text:#0a0a0a;--accent:#c9a24b;--accent-text:#0a0a0a;color-scheme:dark;
+}
+html{background:#0a0a0a}
+body{background:radial-gradient(120% 55% at 50% 0%,#1b1608 0%,#0a0a0a 60%) fixed;color:var(--text)}
+.logo{font-family:"Cormorant Garamond",Georgia,"Times New Roman",serif;font-weight:600;font-size:17px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold)}
+.lang{background:transparent;border:1px solid var(--gold-dim);border-radius:10px}
+.lang button{color:var(--muted);border-radius:7px;letter-spacing:.06em}
+.lang button[aria-pressed="true"]{background:var(--gold);color:#0a0a0a}
+.profile{gap:18px;margin:6px 0 26px}
+.avatar{border:2px solid var(--gold);box-shadow:0 0 0 4px #0a0a0a,0 0 0 5px var(--gold-dim),0 10px 30px rgba(0,0,0,.6);background:#1a1710;color:var(--gold)}
+h1{font-family:"Cormorant Garamond",Georgia,"Times New Roman",serif;font-weight:700;font-size:30px;line-height:1.05;letter-spacing:.01em;color:var(--text)}
+.role{color:var(--gold);text-transform:uppercase;letter-spacing:.24em;font-size:12px;font-weight:600;margin-top:8px;padding-top:8px;border-top:1px solid var(--gold-dim);display:inline-block}
+.btn{border-radius:12px;font-weight:600;letter-spacing:.03em}
+#save{background:linear-gradient(135deg,var(--gold-hi),var(--gold) 50%,var(--gold-lo));color:#0a0a0a;box-shadow:0 6px 20px rgba(201,162,75,.18)}
+#share,#close,#payClose{background:linear-gradient(135deg,var(--gold-hi),var(--gold) 50%,var(--gold-lo));color:#0a0a0a}
+#qrBtn{background:transparent;border:1px solid var(--gold);color:var(--gold)}
+.btn.pay{background:transparent;border:1px solid var(--gold);color:var(--gold)}
+.chip{background:var(--surface);border:1px solid var(--gold-dim);border-radius:12px;color:var(--text);letter-spacing:.02em}
+.ico{background:var(--gold)!important;color:#0a0a0a!important;border-radius:5px}
+section{margin-top:30px}
+h2{font-family:"Cormorant Garamond",Georgia,"Times New Roman",serif;font-weight:700;font-size:15px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);padding-bottom:10px;border-bottom:1px solid var(--gold-dim);margin-bottom:4px}
+dt{color:var(--muted);text-transform:uppercase;letter-spacing:.14em;font-size:11px;margin-top:16px}
+dd{font-size:17px;color:var(--text)}
+dd a{border-bottom:1px solid var(--gold-dim)}
+.site{background:var(--surface);border:1px solid var(--gold-dim);border-radius:12px}
+.about{color:var(--muted);text-align:center;font-size:13px;letter-spacing:.02em;padding-top:18px;border-top:1px solid var(--line)}
+dialog{background:#121110;color:var(--text);border:1px solid var(--gold-dim);border-radius:16px}
+dialog::backdrop{background:rgba(0,0,0,.72)}
+.toast{background:var(--gold);color:#0a0a0a;font-weight:600}
+.btn:focus-visible,.lang button:focus-visible,.chip:focus-visible{outline:2px solid var(--gold-hi)}
+</style>
 </head>
 <body>
+<canvas id="bg" aria-hidden="true"></canvas>
 <div class="wrap">
   <header>
     <div class="logo" id="brand"></div>
     <div class="lang" role="group" aria-label="Язык">
       <button data-l="ru" aria-pressed="true">RU</button>
       <button data-l="en" aria-pressed="false">EN</button>
+      <button data-l="tj" aria-pressed="false">TJ</button>
     </div>
   </header>
 
@@ -74,7 +117,7 @@ dialog::backdrop{background:rgba(0,0,0,.5)}
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20h1"/></svg>
     </button>
   </div>
-  <div class="row" id="payRow"><a class="btn pay" id="pay" target="_blank" rel="noopener"></a></div>
+  <div class="row" id="payRow"><button class="btn pay" id="pay"></button></div>
   <div class="row" id="socials"></div>
 
   <section>
@@ -102,6 +145,17 @@ dialog::backdrop{background:rgba(0,0,0,.5)}
   <div id="qrNote" style="color:var(--muted);font-size:14px;margin-bottom:12px"></div>
   <button class="btn ink" id="close" style="width:100%"></button>
 </dialog>
+<dialog id="payDlg">
+  <div id="cardL" style="color:var(--muted);font-size:14px"></div>
+  <div id="cardN" style="user-select:all;-webkit-user-select:all;font-size:22px;font-weight:700;letter-spacing:.06em;margin:8px 0 14px"></div>
+  <div id="phoneL" style="color:var(--muted);font-size:14px"></div>
+  <div id="phoneN" style="user-select:all;-webkit-user-select:all;font-size:20px;font-weight:600;margin:6px 0 14px"></div>
+  <div id="nameL" style="color:var(--muted);font-size:14px"></div>
+  <div id="nameN" style="font-size:20px;font-weight:600;margin:6px 0 18px"></div>
+  <button class="btn pay" id="copyW" style="width:100%;margin-bottom:10px"></button>
+  <button class="btn pay" id="copyP" style="width:100%;margin-bottom:10px"></button>
+  <button class="btn ink" id="payClose" style="width:100%"></button>
+</dialog>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -113,20 +167,23 @@ const CARD = {
   telegram: "https://t.me/svco777",
   whatsapp: "https://wa.me/qr/RMINS5TYIZMIM1?s=r",
   vk: "",         // пусто — кнопка скрыта
-  payUrl: "",     // пусто — кнопка оплаты скрыта
+  visaCard: "4444 8888 1571 6331",  // номер карты Visa Gold; пусто — кнопка скрыта
   email: "igamberdievabdullo0@gmail.com",
   site: "",       // пусто — блок сайта скрыт
   workPhone: "+992 102 044 100",
-  ru: { name:"Игамбердиев Абдулла", role:"Хаматарафа", company:"Matrix", about:"Нажмите «Сохранить в контакты», чтобы добавить меня в телефон." },
-  en: { name:"Abdulla Igamberdiev", role:"Хаматарафа", company:"Matrix", about:"Tap “Save contact” to add me to your phone." }
+  ru: { name:"Игамбердиев Абдулла", role:"CEO", company:"Matrix", about:"Нажмите «Сохранить в контакты», чтобы добавить меня в телефон." },
+  en: { name:"Abdulla Igamberdiev", role:"CEO", company:"Matrix", about:"Tap “Save contact” to add me to your phone." },
+  tj: { name:"Игамбердиев Абдулло", role:"CEO", company:"Matrix", about:"Барои илова кардани ман ба телефон тугмаи «Сабт ба тамосҳо»-ро пахш кунед." }
 };
 /* ============================================= */
 
 const T = {
-  ru:{save:"Сохранить в контакты",pay:"Оплатить услугу",contacts:"Контакты",work:"Рабочие контакты",phone:"Телефон",company:"Компания",role:"Должность",wphone:"Рабочий телефон",wmail:"Рабочая почта",share:"Поделиться",close:"Закрыть",qrNote:"Наведите камеру, чтобы открыть визитку",copied:"Ссылка скопирована",saved:"Контакт скачан"},
-  en:{save:"Save contact",pay:"Pay for service",contacts:"Contacts",work:"Work contacts",phone:"Phone",company:"Company",role:"Position",wphone:"Work phone",wmail:"Work email",share:"Share",close:"Close",qrNote:"Scan to open this card",copied:"Link copied",saved:"Contact downloaded"}
+  ru:{save:"Сохранить в контакты",pay:"Оплата на карту Visa Gold",contacts:"Контакты",work:"Рабочие контакты",phone:"Телефон",company:"Компания",role:"Должность",wphone:"Рабочий телефон",wmail:"Рабочая почта",share:"Поделиться",close:"Закрыть",qrNote:"Наведите камеру, чтобы открыть визитку",copied:"Скопировано ✓",cardL:"Номер карты Visa Gold",phoneL:"Номер телефона",nameL:"Получатель",nameV:"Абдулло",copy:"Скопировать номер карты",copyP:"Скопировать телефон",fail:"Не вышло. Зажмите номер и копируйте вручную",saved:"Контакт скачан"},
+  en:{save:"Save contact",pay:"Pay to Visa Gold card",contacts:"Contacts",work:"Work contacts",phone:"Phone",company:"Company",role:"Position",wphone:"Work phone",wmail:"Work email",share:"Share",close:"Close",qrNote:"Scan to open this card",copied:"Copied ✓",cardL:"Visa Gold card number",phoneL:"Phone number",nameL:"Recipient",nameV:"Abdullo",copy:"Copy card number",copyP:"Copy phone",fail:"Failed. Press and hold the number to copy",saved:"Contact downloaded"},
+  tj:{save:"Сабт ба тамосҳо",pay:"Пардохт ба корти Visa Gold",contacts:"Тамосҳо",work:"Тамосҳои корӣ",phone:"Телефон",company:"Ширкат",role:"Вазифа",wphone:"Телефони корӣ",wmail:"Почтаи корӣ",share:"Мубодила кардан",close:"Пӯшидан",qrNote:"Камераро ба код равона кунед, то визиткаро кушоед",copied:"Нусха шуд ✓",cardL:"Рақами корти Visa Gold",phoneL:"Рақами телефон",nameL:"Гиранда",nameV:"Абдулло",copy:"Нусхабардории рақами корт",copyP:"Нусхабардории телефон",fail:"Нашуд. Рақамро зер карда нигоҳ доред ва дастӣ нусха гиред"}
 };
-let lang = (localStorage_get("lang") || ((navigator.language||"ru").startsWith("ru") ? "ru" : "en"));
+let lang = localStorage_get("lang");
+if (!["ru","en","tj"].includes(lang)) { const nl = (navigator.language||"ru").toLowerCase(); lang = nl.startsWith("ru") ? "ru" : (nl.startsWith("tg") ? "tj" : "en"); }
 function localStorage_get(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function localStorage_set(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 const $ = id => document.getElementById(id);
@@ -135,7 +192,7 @@ const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'
 
 function render(){
   const t = T[lang], d = CARD[lang];
-  document.documentElement.lang = lang;
+  document.documentElement.lang = lang === "tj" ? "tg" : lang;
   $("brand").textContent = CARD.brand;
   $("name").textContent = d.name;
   $("role").textContent = d.role;
@@ -143,8 +200,8 @@ function render(){
   document.title = d.name;
   $("avatar").innerHTML = CARD.photo ? '<img alt="" src="'+esc(CARD.photo)+'">' : esc(d.name.split(" ").map(w=>w[0]).slice(0,2).join(""));
   $("save").textContent = t.save;
-  $("pay").textContent = t.pay; $("pay").href = CARD.payUrl || "#";
-  $("payRow").classList.toggle("hidden", !CARD.payUrl);
+  $("pay").textContent = t.pay;
+  $("payRow").classList.toggle("hidden", !CARD.visaCard);
   $("socials").innerHTML =
     (CARD.telegram ? '<a class="chip" target="_blank" rel="noopener" href="'+esc(CARD.telegram)+'"><span class="ico" style="background:#2aa3e0">➤</span>Telegram</a>' : '') +
     (CARD.whatsapp ? '<a class="chip" target="_blank" rel="noopener" href="'+esc(CARD.whatsapp)+'"><span class="ico" style="background:#25d366">W</span>WhatsApp</a>' : '') +
@@ -197,7 +254,71 @@ $("qrBtn").onclick = () => {
   $("dlg").showModal();
 };
 $("close").onclick = () => $("dlg").close();
+$("pay").onclick = () => {
+  $("cardL").textContent = T[lang].cardL; $("cardN").textContent = CARD.visaCard;
+  $("phoneL").textContent = T[lang].phoneL; $("phoneN").textContent = CARD.phone;
+  $("nameL").textContent = T[lang].nameL; $("nameN").textContent = T[lang].nameV;
+  $("copyW").textContent = T[lang].copy; $("copyP").textContent = T[lang].copyP; $("payClose").textContent = T[lang].close;
+  $("payDlg").showModal();
+};
+async function copyText(t){
+  try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(t); return true; } } catch(e) {}
+  try {
+    const a = document.createElement("textarea"); a.value = t; a.setAttribute("readonly","");
+    a.style.cssText = "position:fixed;top:0;left:0;opacity:0;font-size:16px";
+    $("payDlg").appendChild(a); a.focus(); a.select(); a.setSelectionRange(0, t.length);
+    const ok = document.execCommand("copy"); a.remove(); return ok;
+  } catch(e) { return false; }
+}
+function copyBtn(id, getVal, label) {
+  $(id).onclick = async () => {
+    const ok = await copyText(getVal());
+    $(id).textContent = ok ? T[lang].copied : T[lang].fail;
+    setTimeout(() => { $(id).textContent = T[lang][label]; }, 2200);
+  };
+}
+copyBtn("copyW", () => CARD.visaCard.replace(/\s/g,""), "copy");
+copyBtn("copyP", () => CARD.phone.replace(/[^\d+]/g,""), "copyP");
+$("payClose").onclick = () => $("payDlg").close();
 render();
+/* Фон: медленно падающие купюры, полупрозрачные */
+(function(){
+  const c=document.getElementById("bg"),x=c.getContext("2d");
+  const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let W,H,bills=[],raf;
+  function size(){const d=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*d;c.height=H*d;x.setTransform(d,0,0,d,0,0);}
+  function mk(init){const s=20+Math.random()*30;return{x:Math.random()*W,y:init?Math.random()*H:-70,s:s,v:.22+s/50*.5,a:.07+Math.random()*.13,r:Math.random()*6.28,vr:(Math.random()-.5)*.010,f:Math.random()*6.28,vf:.005+Math.random()*.009,sw:Math.random()*6.28,sa:.35}}
+  function rr(w,h,r){x.beginPath();if(x.roundRect){x.roundRect(-w/2,-h/2,w,h,r)}else{x.rect(-w/2,-h/2,w,h)}}
+  function draw(b){
+    const w=b.s*2.1,h=b.s;
+    x.save();x.translate(b.x,b.y);x.rotate(b.r);x.scale(.4+.6*Math.abs(Math.cos(b.f)),1);
+    x.globalAlpha=b.a;x.fillStyle="rgba(201,162,75,.28)";x.strokeStyle="#c9a24b";x.lineWidth=1;
+    rr(w,h,3);x.fill();x.stroke();
+    rr(w-8,h-8,2);x.stroke();
+    x.beginPath();x.arc(0,0,h*.26,0,6.283);x.stroke();
+    x.beginPath();x.moveTo(-w*.32,0);x.lineTo(-h*.34,0);x.moveTo(h*.34,0);x.lineTo(w*.32,0);x.stroke();
+    x.restore();
+  }
+  function frame(){
+    x.clearRect(0,0,W,H);
+    for(let i=0;i<bills.length;i++){
+      const b=bills[i];
+      b.y+=b.v;b.sw+=.012;b.x+=Math.sin(b.sw)*b.sa;b.r+=b.vr;b.f+=b.vf;
+      if(b.y>H+70)bills[i]=mk(false);
+      draw(bills[i]);
+    }
+    raf=requestAnimationFrame(frame);
+  }
+  function start(){
+    size();const n=Math.round(Math.min(26,Math.max(14,W/16)));
+    bills=[];for(let i=0;i<n;i++)bills.push(mk(true));
+    cancelAnimationFrame(raf);
+    if(reduce){x.clearRect(0,0,W,H);bills.forEach(draw)}else frame();
+  }
+  addEventListener("resize",start);
+  document.addEventListener("visibilitychange",()=>{if(document.hidden)cancelAnimationFrame(raf);else if(!reduce)frame()});
+  start();
+})();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 </body>

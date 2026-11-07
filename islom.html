@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Цифровая визитка</title>
+<style>
+:root{
+  --bg:#f4f5f8; --surface:#ffffff; --text:#111318; --muted:#7b8090; --line:#e3e5ec;
+  --ink:#111318; --ink-text:#ffffff; --accent:#2f5cff; --accent-text:#ffffff;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#0e1015;--surface:#181b23;--text:#f1f2f6;--muted:#8d92a3;--line:#262a35;--ink:#f1f2f6;--ink-text:#0e1015;}
+}
+:root[data-theme="dark"]{--bg:#0e1015;--surface:#181b23;--text:#f1f2f6;--muted:#8d92a3;--line:#262a35;--ink:#f1f2f6;--ink-text:#0e1015;}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Inter",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.4;-webkit-font-smoothing:antialiased}
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.wrap{position:relative;z-index:1;max-width:460px;margin:0 auto;padding:16px 16px 40px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.logo{font-weight:800;font-size:20px;letter-spacing:-.02em}
+.lang{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:3px}
+.lang button{border:0;background:none;color:var(--muted);font:600 13px inherit;font-family:inherit;padding:6px 10px;border-radius:9px;cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--ink);color:var(--ink-text)}
+.profile{display:flex;gap:16px;align-items:center;margin-bottom:22px}
+.avatar{width:92px;height:92px;border-radius:50%;background:var(--ink);color:var(--ink-text);display:grid;place-items:center;font-size:34px;font-weight:700;overflow:hidden;flex:none}
+.avatar img{width:100%;height:100%;object-fit:cover}
+h1{font-size:24px;line-height:1.15;margin:0 0 4px;letter-spacing:-.02em}
+.role{color:var(--muted);font-size:15px}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px}.row:empty{display:none}
+.btn{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;border-radius:16px;border:0;font:600 16px inherit;font-family:inherit;text-decoration:none;cursor:pointer;color:var(--text)}
+.btn:focus-visible,.lang button:focus-visible,.chip:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn.ink{background:var(--ink);color:var(--ink-text)}
+.btn.pay{background:var(--accent);color:var(--accent-text)}
+.btn.sq{flex:none;width:52px;padding:0}
+.chip{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;background:var(--surface);border:1px solid var(--line);border-radius:14px;color:var(--text);text-decoration:none;font-weight:500;font-size:15px}
+.ico{width:20px;height:20px;border-radius:6px;display:inline-grid;place-items:center;color:#fff;font-size:11px;font-weight:700}
+section{margin-top:26px}
+h2{font-size:20px;margin:0 0 12px;letter-spacing:-.01em}
+dl{margin:0}
+dt{color:var(--muted);font-size:13px;margin-top:14px}
+dd{margin:2px 0 0;font-size:17px}
+dd a{color:inherit;text-decoration:none;border-bottom:1px solid var(--line)}
+.site{display:inline-flex;align-items:center;gap:10px;margin-top:16px;padding:12px 16px;border:1px solid var(--line);background:var(--surface);border-radius:14px;color:var(--text);text-decoration:none;font-size:16px}
+.about{color:var(--muted);font-size:14px;margin-top:28px}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--ink);color:var(--ink-text);padding:12px 18px;border-radius:14px;font-size:14px;opacity:0;pointer-events:none;transition:.25s}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.hidden{display:none}
+dialog{border:0;border-radius:20px;padding:20px;background:var(--surface);color:var(--text);max-width:320px;width:90%;text-align:center}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+#qr{width:240px;height:240px;margin:0 auto 12px;display:block;background:#fff;border-radius:12px;padding:8px}
+</style>
+<meta name="theme-color" content="#0a0a0a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Чёрный и золотой */
+:root,:root:not([data-theme="light"]),:root[data-theme="dark"]{
+  --bg:#0a0a0a;--surface:#131210;--text:#f1ebdd;--muted:#948a73;--line:#2b2619;
+  --gold:#c9a24b;--gold-hi:#e6c978;--gold-lo:#9c7a2e;--gold-dim:rgba(201,162,75,.38);
+  --ink:#c9a24b;--ink-text:#0a0a0a;--accent:#c9a24b;--accent-text:#0a0a0a;color-scheme:dark;
+}
+html{background:#0a0a0a}
+body{background:radial-gradient(120% 55% at 50% 0%,#1b1608 0%,#0a0a0a 60%) fixed;color:var(--text)}
+.logo{font-family:"Cormorant Garamond",Georgia,"Times New Roman",serif;font-weight:600;font-size:17px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold)}
+.lang{background:transparent;border:1px solid var(--gold-dim);border-radius:10px}
+.lang button{color:var(--muted);border-radius:7px;letter-spacing:.06em}
+.lang button[aria-pressed="true"]{background:var(--gold);color:#0a0a0a}
+.profile{gap:18px;margin:6px 0 26px}
+.avatar{border:2px solid var(--gold);box-shadow:0 0 0 4px #0a0a0a,0 0 0 5px var(--gold-dim),0 10px 30px rgba(0,0,0,.6);background:#1a1710;color:var(--gold)}
+h1{font-family:"Cormorant Garamond",Georgia,"Times New Roman",serif;font-weight:700;font-size:30px;line-height:1.05;letter-spacing:.01em;color:var(--text)}
+.role{color:var(--gold);text-transform:uppercase;letter-spacing:.24em;font-size:12px;font-weight:600;margin-top:8px;padding-top:8px;border-top:1px solid var(--gold-dim);display:inline-block}
+.btn{border-radius:12px;font-weight:600;letter-spacing:.03em}
+#save{background:linear-gradient(135deg,var(--gold-hi),var(--gold) 50%,var(--gold-lo));color:#0a0a0a;box-shadow:0 6px 20px rgba(201,162,75,.18)}
+#share,#close,#payClose{background:linear-gradient(135deg,var(--gold-hi),var(--gold) 50%,var(--gold-lo));color:#0a0a0a}
+#qrBtn{background:transparent;border:1px solid var(--gold);color:var(--gold)}
+.btn.pay{background:transparent;border:1px solid var(--gold);color:var(--gold)}
+.chip{background:var(--surface);border:1px solid var(--gold-dim);border-radius:12px;color:var(--text);letter-spacing:.02em}
+.ico{background:var(--gold)!important;color:#0a0a0a!important;border-radius:5px}
+section{margin-top:30px}
+h2{font-family:"Cormorant Garamond",Georgia,"Times New Roman",serif;font-weight:700;font-size:15px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);padding-bottom:10px;border-bottom:1px solid var(--gold-dim);margin-bottom:4px}
+dt{color:var(--muted);text-transform:uppercase;letter-spacing:.14em;font-size:11px;margin-top:16px}
+dd{font-size:17px;color:var(--text)}
+dd a{border-bottom:1px solid var(--gold-dim)}
+.site{background:var(--surface);border:1px solid var(--gold-dim);border-radius:12px}
+.about{color:var(--muted);text-align:center;font-size:13px;letter-spacing:.02em;padding-top:18px;border-top:1px solid var(--line)}
+dialog{background:#121110;color:var(--text);border:1px solid var(--gold-dim);border-radius:16px}
+dialog::backdrop{background:rgba(0,0,0,.72)}
+.toast{background:var(--gold);color:#0a0a0a;font-weight:600}
+.btn:focus-visible,.lang button:focus-visible,.chip:focus-visible{outline:2px solid var(--gold-hi)}
+</style>
+</head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+<div class="wrap">
+  <header>
+    <div class="logo" id="brand"></div>
+    <div class="lang" role="group" aria-label="Язык">
+      <button data-l="ru" aria-pressed="true">RU</button>
+      <button data-l="en" aria-pressed="false">EN</button>
+    </div>
+  </header>
+
+  <div class="profile">
+    <div class="avatar" id="avatar"></div>
+    <div><h1 id="name"></h1><div class="role" id="role"></div></div>
+  </div>
+
+  <div class="row">
+    <button class="btn ink" id="save"></button>
+    <button class="btn ink sq" id="qrBtn" aria-label="QR-код">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20h1"/></svg>
+    </button>
+  </div>
+  <div class="row" id="payRow"><button class="btn pay" id="pay"></button></div>
+  <div class="row" id="socials"></div>
+
+  <section>
+    <h2 id="hContacts"></h2>
+    <dl id="contacts"></dl>
+  </section>
+
+  <section id="workSec">
+    <h2 id="hWork"></h2>
+    <dl id="work"></dl>
+    <a class="site" id="site" target="_blank" rel="noopener">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>
+      <span id="siteText"></span>
+    </a>
+  </section>
+
+  <section>
+    <button class="btn ink" id="share"></button>
+  </section>
+  <p class="about" id="about"></p>
+</div>
+
+<dialog id="dlg">
+  <img id="qr" alt="QR">
+  <div id="qrNote" style="color:var(--muted);font-size:14px;margin-bottom:12px"></div>
+  <button class="btn ink" id="close" style="width:100%"></button>
+</dialog>
+<dialog id="payDlg">
+  <div id="walletL" style="color:var(--muted);font-size:14px"></div>
+  <div id="walletN" style="font-size:24px;font-weight:700;margin:6px 0 14px"></div>
+  <img id="payQr" class="hidden" alt="QR" style="width:240px;height:240px;margin:0 auto 14px;background:#fff;border-radius:12px;padding:8px">
+  <button class="btn pay" id="copyW" style="width:100%;margin-bottom:10px"></button>
+  <button class="btn ink" id="payClose" style="width:100%"></button>
+</dialog>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ============ ИЗМЕНИТЕ ЭТИ ДАННЫЕ ============ */
+const CARD = {
+  brand: "PMPGROUP",
+  photo: "data:image/jpeg;base64,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",
+  phone: "+992 555 556 578",
+  telegram: "https://t.me/Islam55s",
+  whatsapp: "https://wa.me/992555556578",
+  vk: "",
+  payUrl: "",                       // ссылка на оплату в Alif: если указана, кнопка сразу открывает её
+  alifWallet: "+992 555 556 578",  // номер кошелька Alif; пусто — кнопка оплаты скрыта
+  payQr: "",                        // картинка QR для оплаты (data:-строка); пусто — не показывать
+  email: "islamigamberdiev55@gmail.com",
+  site: "",
+  workPhone: "+992 555 556 578",
+  ru: { name:"Игамбердиев Ислам", role:"CEO", company:"PMPGROUP", about:"Нажмите «Сохранить в контакты», чтобы добавить меня в телефон." },
+  en: { name:"Islam Igamberdiev", role:"CEO", company:"PMPGROUP", about:"Tap “Save contact” to add me to your phone." }
+};
+/* ============================================= */
+
+const T = {
+  ru:{save:"Сохранить в контакты",pay:"Оплатить через Alif",contacts:"Контакты",work:"Рабочие контакты",phone:"Телефон",company:"Компания",role:"Должность",wphone:"Рабочий телефон",wmail:"Рабочая почта",share:"Поделиться",close:"Закрыть",qrNote:"Наведите камеру, чтобы открыть визитку",copied:"Скопировано ✓",wallet:"Номер кошелька Alif",copy:"Скопировать",saved:"Контакт скачан"},
+  en:{save:"Save contact",pay:"Pay with Alif",contacts:"Contacts",work:"Work contacts",phone:"Phone",company:"Company",role:"Position",wphone:"Work phone",wmail:"Work email",share:"Share",close:"Close",qrNote:"Scan to open this card",copied:"Copied ✓",wallet:"Alif wallet number",copy:"Copy",saved:"Contact downloaded"}
+};
+let lang = (localStorage_get("lang") || ((navigator.language||"ru").startsWith("ru") ? "ru" : "en"));
+function localStorage_get(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function localStorage_set(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+const $ = id => document.getElementById(id);
+const tel = s => "tel:" + s.replace(/[^\d+]/g,"");
+const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function render(){
+  const t = T[lang], d = CARD[lang];
+  document.documentElement.lang = lang;
+  $("brand").textContent = CARD.brand;
+  $("name").textContent = d.name;
+  $("role").textContent = d.role;
+  $("about").textContent = d.about;
+  document.title = d.name;
+  $("avatar").innerHTML = CARD.photo ? '<img alt="" src="'+esc(CARD.photo)+'">' : esc(d.name.split(" ").map(w=>w[0]).slice(0,2).join(""));
+  $("save").textContent = t.save;
+  $("pay").textContent = t.pay;
+  $("payRow").classList.toggle("hidden", !(CARD.payUrl || CARD.alifWallet));
+  $("socials").innerHTML =
+    (CARD.telegram ? '<a class="chip" target="_blank" rel="noopener" href="'+esc(CARD.telegram)+'"><span class="ico" style="background:#2aa3e0">➤</span>Telegram</a>' : '') +
+    (CARD.whatsapp ? '<a class="chip" target="_blank" rel="noopener" href="'+esc(CARD.whatsapp)+'"><span class="ico" style="background:#25d366">W</span>WhatsApp</a>' : '') +
+    (CARD.vk ? '<a class="chip" target="_blank" rel="noopener" href="'+esc(CARD.vk)+'"><span class="ico" style="background:#2f6bff">VK</span>VK</a>' : '');
+  $("hContacts").textContent = t.contacts;
+  $("contacts").innerHTML = '<dt>'+t.phone+'</dt><dd><a href="'+tel(CARD.phone)+'">'+esc(CARD.phone)+'</a></dd>';
+  $("hWork").textContent = t.work;
+  $("work").innerHTML =
+    (d.company ? '<dt>'+t.company+'</dt><dd>'+esc(d.company)+'</dd>' : '')+
+    '<dt>'+t.role+'</dt><dd>'+esc(d.role)+'</dd>'+
+    '<dt>'+t.wphone+'</dt><dd><a href="'+tel(CARD.workPhone)+'">'+esc(CARD.workPhone)+'</a></dd>'+
+    '<dt>'+t.wmail+'</dt><dd><a href="mailto:'+esc(CARD.email)+'">'+esc(CARD.email)+'</a></dd>';
+  $("site").classList.toggle("hidden", !CARD.site); if (CARD.site) { $("site").href = CARD.site; $("siteText").textContent = CARD.site.replace(/^https?:\/\//,""); }
+  $("share").textContent = t.share; $("close").textContent = t.close; $("qrNote").textContent = t.qrNote;
+  document.querySelectorAll(".lang button").forEach(b => b.setAttribute("aria-pressed", b.dataset.l === lang));
+}
+function toast(m){const e=$("toast");e.textContent=m;e.classList.add("on");setTimeout(()=>e.classList.remove("on"),2200)}
+
+document.querySelectorAll(".lang button").forEach(b => b.onclick = () => { lang = b.dataset.l; localStorage_set("lang",lang); render(); });
+
+/* vCard */
+$("save").onclick = () => {
+  const d = CARD[lang], p = d.name.split(" ");
+  const v = ["BEGIN:VCARD","VERSION:3.0",
+    "N:"+(p.slice(1).join(" "))+";"+p[0]+";;;","FN:"+d.name,
+    "ORG:"+d.company,"TITLE:"+d.role,
+    "TEL;TYPE=CELL:"+CARD.phone,"TEL;TYPE=WORK:"+CARD.workPhone,
+    "EMAIL;TYPE=WORK:"+CARD.email,"END:VCARD"].join("\r\n");
+  const url = URL.createObjectURL(new Blob([v],{type:"text/vcard;charset=utf-8"}));
+  const a = document.createElement("a"); a.href = url; a.download = "contact.vcf";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+  toast(T[lang].saved);
+};
+
+/* Share */
+$("share").onclick = async () => {
+  const link = location.href.split("#")[0];
+  try { if (navigator.share) { await navigator.share({title:CARD[lang].name,url:link}); return; } } catch(e){ return; }
+  try { await navigator.clipboard.writeText(link); toast(T[lang].copied); } catch(e){ toast(link); }
+};
+
+/* QR through external image is blocked on hosted pages, so QR shows only if a library is available */
+$("qrBtn").onclick = () => {
+  const link = location.href.split("#")[0];
+  if (window.qrcode) {
+    const q = qrcode(0,"M"); q.addData(link); q.make();
+    $("qr").src = q.createDataURL(6,0);
+  }
+  $("dlg").showModal();
+};
+$("close").onclick = () => $("dlg").close();
+$("pay").onclick = () => {
+  if (CARD.payUrl) { window.open(CARD.payUrl, "_blank", "noopener"); return; }
+  $("walletL").textContent = T[lang].wallet; $("walletN").textContent = CARD.alifWallet;
+  $("copyW").textContent = T[lang].copy; $("payClose").textContent = T[lang].close;
+  $("payQr").classList.toggle("hidden", !CARD.payQr); if (CARD.payQr) $("payQr").src = CARD.payQr;
+  $("payDlg").showModal();
+};
+$("copyW").onclick = async () => {
+  try { await navigator.clipboard.writeText(CARD.alifWallet.replace(/[^\d+]/g,"")); $("copyW").textContent = T[lang].copied; } catch(e) {}
+};
+$("payClose").onclick = () => $("payDlg").close();
+render();
+
+/* Фон: медленно падающие купюры, полупрозрачные */
+(function(){
+  const c=document.getElementById("bg"),x=c.getContext("2d");
+  const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let W,H,bills=[],raf;
+  function size(){const d=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*d;c.height=H*d;x.setTransform(d,0,0,d,0,0);}
+  function mk(init){const s=20+Math.random()*30;return{x:Math.random()*W,y:init?Math.random()*H:-70,s:s,v:.22+s/50*.5,a:.07+Math.random()*.13,r:Math.random()*6.28,vr:(Math.random()-.5)*.010,f:Math.random()*6.28,vf:.005+Math.random()*.009,sw:Math.random()*6.28,sa:.35}}
+  function rr(w,h,r){x.beginPath();if(x.roundRect){x.roundRect(-w/2,-h/2,w,h,r)}else{x.rect(-w/2,-h/2,w,h)}}
+  function draw(b){
+    const w=b.s*2.1,h=b.s;
+    x.save();x.translate(b.x,b.y);x.rotate(b.r);x.scale(.4+.6*Math.abs(Math.cos(b.f)),1);
+    x.globalAlpha=b.a;x.fillStyle="rgba(201,162,75,.28)";x.strokeStyle="#c9a24b";x.lineWidth=1;
+    rr(w,h,3);x.fill();x.stroke();
+    rr(w-8,h-8,2);x.stroke();
+    x.beginPath();x.arc(0,0,h*.26,0,6.283);x.stroke();
+    x.beginPath();x.moveTo(-w*.32,0);x.lineTo(-h*.34,0);x.moveTo(h*.34,0);x.lineTo(w*.32,0);x.stroke();
+    x.restore();
+  }
+  function frame(){
+    x.clearRect(0,0,W,H);
+    for(let i=0;i<bills.length;i++){
+      const b=bills[i];
+      b.y+=b.v;b.sw+=.012;b.x+=Math.sin(b.sw)*b.sa;b.r+=b.vr;b.f+=b.vf;
+      if(b.y>H+70)bills[i]=mk(false);
+      draw(bills[i]);
+    }
+    raf=requestAnimationFrame(frame);
+  }
+  function start(){
+    size();const n=Math.round(Math.min(26,Math.max(14,W/16)));
+    bills=[];for(let i=0;i<n;i++)bills.push(mk(true));
+    cancelAnimationFrame(raf);
+    if(reduce){x.clearRect(0,0,W,H);bills.forEach(draw)}else frame();
+  }
+  addEventListener("resize",start);
+  document.addEventListener("visibilitychange",()=>{if(document.hidden)cancelAnimationFrame(raf);else if(!reduce)frame()});
+  start();
+})();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+</body>
+</html>
